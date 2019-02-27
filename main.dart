@@ -1,23 +1,121 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/material.dart';
 import 'package:english_words/english_words.dart';
 
-void main() => runApp(new MyApp());
+void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return new MaterialApp(
-      title: 'Welcome to Flutter',
-      home: new Scaffold(
-        appBar: new AppBar(
-          title: const Text('Welcome to Flutter'),
-        ),
-        body: const Center(
-          child: const Text('Hello World'),
-        ),
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'HELLO ..,',
+      theme: ThemeData(
+        primaryColor: Colors.red
+        ,
       ),
+      home: RandomWords(),
     );
   }
 }
 
+class RandomWords extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() {
+    return RandomWordState();
+  }
+}
+
+class RandomWordState extends State<RandomWords> {
+
+  final _suggestions = <WordPair>[];
+  final _saved = Set<WordPair>();
+  final _biggerFont = const TextStyle(fontSize: 18.0);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Amal First App'),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(
+              Icons.list,
+            ),
+            onPressed: _favorites,
+          )
+        ],
+      ),
+      body: _buildSuggestions(),
+    );
+  }
+
+  Widget _buildSuggestions() {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16.0),
+      itemBuilder: (context, i) {
+        if (i.isOdd) {
+          return Divider();
+        }
+        if (i >= _suggestions.length) {
+          _suggestions.addAll(generateWordPairs().take(10));
+        }
+
+        final index = i ~/ 2;
+
+        return _buildRow(_suggestions[index]);
+      }, //Anonymous Class
+    );
+  } //Widget
+
+  Widget _buildRow(WordPair suggestion) {
+    final alreadySaved = _saved.contains(suggestion);
+    return ListTile(
+      title: Text(
+        suggestion.asPascalCase,
+        style: _biggerFont,
+      ),
+      trailing: Icon(
+        alreadySaved
+            ? Icons.check_circle
+            : Icons.check_circle_outline,
+
+        color: alreadySaved
+            ? Colors.redAccent
+            : null,
+      ),
+      onTap: () {
+        setState(() {
+          if (alreadySaved) {
+            _saved.remove(suggestion);
+          } else {
+            _saved.add(suggestion);
+          }
+        }); //setState
+      },
+    );
+  }
+
+  void _favorites() {
+    Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+      final tiles = _saved.map((suggestion) {
+        return ListTile(
+          title: Text(
+            suggestion.asPascalCase,
+            style: _biggerFont,
+          ),
+        );
+      });
+
+      final divided =
+      ListTile.divideTiles(context: context, tiles: tiles).toList();
+      return Scaffold(
+        appBar: AppBar(
+          title: Text('Selected Item '),
+        ),
+        body: ListView(
+          children: divided,
+        ),
+      );
+    }));
+  }
+}
